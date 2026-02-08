@@ -1,128 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Order Lookup</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f4f6f9;
-            margin: 0;
-            padding: 40px;
-        }
+<meta charset="UTF-8">
+<title>Home</title>
 
-        .container {
-            max-width: 900px;
-            margin: auto;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
+<style>
+    body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #f5f7fb;
+        color: #111827;
+    }
 
-        h1 {
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
+    /* NAVBAR */
+    .navbar {
+        height: 70px;
+        background: #111827;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 40px;
+    }
 
-        form {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
+    .navbar .logo {
+        color: white;
+        font-size: 20px;
+        font-weight: 600;
+    }
 
-        input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
+    .nav-links a {
+        color: white;
+        text-decoration: none;
+        margin-left: 25px;
+        font-size: 15px;
+    }
 
-        button {
-            padding: 12px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            background: #2563eb;
-            color: white;
-        }
+    .nav-links a:hover {
+        opacity: 0.85;
+    }
 
-        button:hover {
-            background: #1e4ed8;
-        }
+    /* HERO */
+    .hero {
+        text-align: center;
+        padding: 120px 20px;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    .hero h1 {
+        font-size: 42px;
+        margin-bottom: 15px;
+    }
 
-        th, td {
-            padding: 14px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-        }
+    .hero p {
+        font-size: 18px;
+        color: #6b7280;
+        margin-bottom: 40px;
+    }
 
-        th {
-            background: #f1f5f9;
-            font-weight: 600;
-        }
+    .hero-buttons a {
+        display: inline-block;
+        padding: 14px 26px;
+        margin: 0 10px;
+        border-radius: 12px;
+        font-size: 16px;
+        text-decoration: none;
+        color: white;
+        background: #111827;
+    }
 
-        .empty {
-            color: #6b7280;
-        }
-    </style>
+    .hero-buttons a.secondary {
+        background: #374151;
+    }
+</style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Search Order</h1>
+<!-- NAVBAR -->
+<div class="navbar">
+    <div class="logo">Perfume store</div>
+    <div class="nav-links">
+        <a href="signup.php">Sign Up</a>
+        <a href="login.php">Log In</a>
+        <a href="demo.php">Order / Customer Lookup</a>
+    </div>
+</div>
 
-    <form method="post">
-        <input type="text" name="orderNum" placeholder="Enter order number" required>
-        <button type="submit">Search</button>
-    </form>
+<!-- HERO SECTION -->
+<div class="hero">
+    <h1>Welcome</h1>
+    <p>Search orders, manage customers, and access your account.</p>
 
-    <?php
-    require "App/config/Database.php";
-    $db = new Database;
-    $conn = $db->connect();
-
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        $orderNum = $_POST["orderNum"];
-
-        $sql = "SELECT * FROM classicmodels.orders WHERE orderNumber = $orderNum";
-        $result = $conn->query($sql);
-
-        if ($result && $result->num_rows > 0) {
-            echo "<table>";
-            echo "<tr>
-                    <th>Order #</th>
-                    <th>Order Date</th>
-                    <th>Required Date</th>
-                    <th>Shipped Date</th>
-                    <th>Status</th>
-                    <th>Customer #</th>
-                  </tr>";
-
-            while ($row = $result->fetch_assoc()) {
-                echo "<tr>
-                        <td>{$row['orderNumber']}</td>
-                        <td>{$row['orderDate']}</td>
-                        <td>{$row['requiredDate']}</td>
-                        <td>{$row['shippedDate']}</td>
-                        <td>{$row['status']}</td>
-                        <td>{$row['customerNumber']}</td>
-                      </tr>";
-            }
-
-            echo "</table>";
-        } else {
-            echo "<p class='empty'>No order found.</p>";
-        }
-    }
-    ?>
+    <div class="hero-buttons">
+        <a href="signup.php">Create Account</a>
+     
+    </div>
 </div>
 
 </body>
