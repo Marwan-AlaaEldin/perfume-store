@@ -1,115 +1,205 @@
-<?php
-require "App\config\Database.php";  // your Database class
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Order & Customer Lookup</title>
 
-// Create Database instance and connect
+<style>
+    :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #111827;
+        --border: #e5e7eb;
+    }
+
+    body {
+        margin: 0;
+        font-family: Inter, system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 50px 0;
+    }
+
+    .container {
+        width: 1100px;
+        margin: auto;
+    }
+
+    .card {
+        background: var(--card);
+        border-radius: 14px;
+        padding: 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+        margin: 0 0 20px;
+        font-size: 26px;
+    }
+
+    form {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 25px;
+    }
+
+    input {
+        flex: 1;
+        padding: 14px;
+        font-size: 15px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+    }
+
+    button {
+        padding: 14px 22px;
+        font-size: 15px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: white;
+        cursor: pointer;
+    }
+
+    button:hover {
+        opacity: 0.9;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 14px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+    }
+
+    th {
+        background: #f9fafb;
+        font-weight: 600;
+    }
+
+    .empty {
+        color: var(--muted);
+        text-align: center;
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+<?php
+require "App/config/Database.php";
 $db = new Database();
 $conn = $db->connect();
 ?>
 
-<h1 style="text-align:center; font-family: Arial, sans-serif; color:#333;">Please enter order number:</h1>
+<div class="container">
 
-<form method="post" style="text-align:center; margin-bottom: 20px;">
-    <input type="text" name="orderNum" placeholder="Order number" 
-           style="padding:8px; width:200px; border:1px solid #ccc; border-radius:4px;">
-    <button type="submit" 
-            style="padding:8px 16px; background-color:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">
-        Search
-    </button>
-</form>
+    <!-- ORDER SEARCH -->
+    <div class="card">
+        <h1>Order Lookup</h1>
 
-<?php
-// ---------- ORDER SEARCH ----------
-if (isset($_POST["orderNum"])) {
-    
-    $orderNum = $_POST["orderNum"];
-    $sql = "SELECT * FROM classicmodels.orders WHERE orderNumber = $orderNum";
-    $result = $conn->query($sql);
+        <form method="post">
+            <input type="number" name="orderNum" placeholder="Enter order number" required>
+            <button type="submit">Search</button>
+        </form>
 
-    if ($result->num_rows > 0) {
-        echo "<h3 style='text-align:center;'>Order Details</h3>";
-        echo "<table style='width:80%; margin:0 auto; border-collapse: collapse; font-family: Arial, sans-serif;'>";
-        echo "<tr style='background-color:#4CAF50; color:white; text-align:center;'>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Order Number</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Order Date</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Required Date</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Shipped Date</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Status</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Customer Number</th>";
-        echo "</tr>";
+        <?php
+        if (!empty($_POST['orderNum'])) {
+            $stmt = $conn->prepare(
+                "SELECT orderNumber, orderDate, requiredDate, shippedDate, status, customerNumber 
+                 FROM classicmodels.orders 
+                 WHERE orderNumber = ?"
+            );
+            $stmt->bind_param("i", $_POST['orderNum']);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-        while ($row = $result->fetch_assoc()) {
-            echo "<tr style='text-align:center; border:1px solid #ddd;'>";
-            echo "<td style='padding:8px'>{$row['orderNumber']}</td>";
-            echo "<td style='padding:8px'>{$row['orderDate']}</td>";
-            echo "<td style='padding:8px'>{$row['requiredDate']}</td>";
-            echo "<td style='padding:8px'>{$row['shippedDate']}</td>";
-            echo "<td style='padding:8px'>{$row['status']}</td>";
-            echo "<td style='padding:8px'>{$row['customerNumber']}</td>";
-            echo "</tr>";
+            if ($result->num_rows > 0) {
+                echo "<table>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Order Date</th>
+                            <th>Required</th>
+                            <th>Shipped</th>
+                            <th>Status</th>
+                            <th>Customer #</th>
+                        </tr>";
+
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>
+                            <td>{$row['orderNumber']}</td>
+                            <td>{$row['orderDate']}</td>
+                            <td>{$row['requiredDate']}</td>
+                            <td>{$row['shippedDate']}</td>
+                            <td>{$row['status']}</td>
+                            <td>{$row['customerNumber']}</td>
+                          </tr>";
+                }
+                echo "</table>";
+            } else {
+                echo "<p class='empty'>No order found.</p>";
+            }
         }
+        ?>
+    </div>
 
-        echo "</table>";
-    } else {
-        echo "<p style='text-align:center; font-family: Arial, sans-serif; color:#555;'>No orders found for order number $orderNum</p>";
-    }
-}
-?>
+    <!-- CUSTOMER SEARCH -->
+    <div class="card">
+        <h1>Customer Lookup</h1>
 
-<hr style="margin:40px 0;">
+        <form method="post">
+            <input type="number" name="custNum" placeholder="Enter customer number" required>
+            <button type="submit">Search</button>
+        </form>
 
-<h1 style="text-align:center; font-family: Arial, sans-serif; color:#333;">Please enter customer number:</h1>
+        <?php
+        if (!empty($_POST['custNum'])) {
+            $stmt = $conn->prepare(
+                "SELECT customerNumber, customerName, phone, city, country, creditLimit
+                 FROM classicmodels.customers
+                 WHERE customerNumber = ?"
+            );
+            $stmt->bind_param("i", $_POST['custNum']);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-<form method="post" style="text-align:center; margin-bottom: 20px;">
-    <input type="text" name="custNum" placeholder="Customer number" 
-           style="padding:8px; width:200px; border:1px solid #ccc; border-radius:4px;">
-    <button type="submit" 
-            style="padding:8px 16px; background-color:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">
-        Search
-    </button>
-</form>
+            if ($result->num_rows > 0) {
+                echo "<table>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>City</th>
+                            <th>Country</th>
+                            <th>Credit Limit</th>
+                        </tr>";
 
-<?php
-// ---------- CUSTOMER SEARCH ----------
-if (isset($_POST["custNum"])) {
-    
-    $custNum = $_POST["custNum"];
-    $sql = "SELECT * FROM classicmodels.customers WHERE customerNumber = $custNum";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        echo "<h3 style='text-align:center;'>Customer Details</h3>";
-        echo "<table style='width:90%; margin:0 auto; border-collapse: collapse; font-family: Arial, sans-serif;'>";
-        echo "<tr style='background-color:#4CAF50; color:white; text-align:center;'>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Customer Number</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Name</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Contact Last Name</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Contact First Name</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Phone</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Address</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>City</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Postal Code</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Country</th>";
-        echo "<th style='padding:10px; border:1px solid #ddd;'>Credit Limit</th>";
-        echo "</tr>";
-
-        while ($row = $result->fetch_assoc()) {
-            echo "<tr style='text-align:center; border:1px solid #ddd;'>";
-            echo "<td style='padding:8px'>{$row['customerNumber']}</td>";
-            echo "<td style='padding:8px'>{$row['customerName']}</td>";
-            echo "<td style='padding:8px'>{$row['contactLastName']}</td>";
-            echo "<td style='padding:8px'>{$row['contactFirstName']}</td>";
-            echo "<td style='padding:8px'>{$row['phone']}</td>";
-            echo "<td style='padding:8px'>{$row['addressLine1']}</td>";
-            echo "<td style='padding:8px'>{$row['city']}</td>";
-            echo "<td style='padding:8px'>{$row['postalCode']}</td>";
-            echo "<td style='padding:8px'>{$row['country']}</td>";
-            echo "<td style='padding:8px'>{$row['creditLimit']}</td>";
-            echo "</tr>";
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>
+                            <td>{$row['customerNumber']}</td>
+                            <td>{$row['customerName']}</td>
+                            <td>{$row['phone']}</td>
+                            <td>{$row['city']}</td>
+                            <td>{$row['country']}</td>
+                            <td>{$row['creditLimit']}</td>
+                          </tr>";
+                }
+                echo "</table>";
+            } else {
+                echo "<p class='empty'>No customer found.</p>";
+            }
         }
+        ?>
+    </div>
 
-        echo "</table>";
-    } else {
-        echo "<p style='text-align:center; font-family: Arial, sans-serif; color:#555;'>No customer found for customer number $custNum</p>";
-    }
-}
-?>
+</div>
+
+</body>
+</html>
