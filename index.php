@@ -80,6 +80,7 @@
     <div class="nav-links">
         <a href="signup.php">Sign Up</a>
         <a href="login.php">Log In</a>
+        <a href="Admin.php">Admin</a>
         <a href="demo.php">Order / Customer Lookup</a>
     </div>
 </div>
